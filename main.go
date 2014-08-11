@@ -51,7 +51,7 @@ func buildURLAtIndex(url []byte, index int) {
 }
 
 func init() {
-	urls = make(chan string, 1000)
+	urls = make(chan string, 5000)
 }
 
 func reportChecked() {
@@ -65,7 +65,7 @@ func reportChecked() {
 }
 
 func main() {
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 500; i++ {
 		go checkShops()
 	}
 
