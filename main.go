@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
+
+	"github.com/aybabtme/uniplot/spark"
 )
 
 var urls chan string
 var checked int
+var saveFile *os.File
 
 func checkShops() {
 	for {
@@ -26,7 +31,13 @@ func checkShopURL(url string) {
 	}
 	defer resp.Body.Close()
 
-	log.Printf("[%v] %v", resp.StatusCode, url)
+	if resp.StatusCode == 200 {
+		saveURL(url)
+	}
+}
+
+func saveURL(url string) {
+	saveFile.WriteString(fmt.Sprintf("%s\n", url))
 }
 
 func setURLAtIndexToChar(url []byte, index int, char byte) {
@@ -50,26 +61,35 @@ func buildURLAtIndex(url []byte, index int) {
 	}
 }
 
+func reportToSpark(sprk *spark.SparkStream) {
+	ticker := time.NewTicker(1 * time.Second)
+
+	for {
+		<-ticker.C
+		sprk.Add(float64(checked))
+		checked = 0
+	}
+}
+
 func init() {
 	urls = make(chan string, 5000)
 }
 
-func reportChecked() {
-	secondsPassed := 0
-	ticker := time.NewTicker(10 * time.Second)
-	for {
-		<-ticker.C
-		secondsPassed += 10
-		log.Printf("%v checked per second", float64(checked)/float64(secondsPassed))
-	}
-}
-
 func main() {
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 1000; i++ {
 		go checkShops()
 	}
 
-	go reportChecked()
+	sprk := spark.Spark(1 * time.Second)
+	sprk.Start()
+	go reportToSpark(sprk)
+
+	fileName := strconv.FormatInt(time.Now().Unix(), 10)
+	file, err := os.Create(fmt.Sprintf("shops/%s", fileName))
+	if err != nil {
+		log.Fatal("creating file: %v", err)
+	}
+	saveFile = file
 
 	for shopLength := 5; shopLength <= 7; shopLength++ {
 		shopURL := make([]byte, shopLength)
