@@ -32,7 +32,7 @@ func checkShopURL(url string) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 {
-		saveURL(url)
+		go saveURL(url)
 	}
 }
 
