@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 )
 
 func setShopIDAtIndexToChar(shopID []byte, index int, char byte, shopIDs chan string) {
@@ -34,10 +35,20 @@ func main() {
 	}
 	defer saveFile.Close()
 
-	shopChecker := NewShopChecker(1000, shopIDs, saveFile)
+	memSave := make([]string, 0)
+
+	shopChecker := NewShopChecker(1000, shopIDs, saveFile, memSave)
 	shopChecker.Work()
 	lastShopID := shopChecker.LastShopID()
 	lastShopID[len(lastShopID)-1]++
+
+	ticker := time.NewTicker(5 * time.Second)
+	go func() {
+		for {
+			<-ticker.C
+			log.Printf("found %v", len(shopChecker.MemSave))
+		}
+	}()
 
 	for shopLength := len(lastShopID); shopLength <= 7; shopLength++ {
 		shopID := make([]byte, shopLength)
