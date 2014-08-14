@@ -11,7 +11,6 @@ func setShopIDAtIndexToChar(shopID []byte, index int, char byte, shopIDs chan st
 	if index < len(shopID)-1 {
 		buildShopIDAtIndex(shopID, index+1, shopIDs)
 	} else {
-		log.Print(string(shopID))
 		shopIDs <- string(shopID)
 	}
 }
@@ -29,7 +28,7 @@ func buildShopIDAtIndex(shopID []byte, index int, shopIDs chan string) {
 func main() {
 	shopIDs := make(chan string, 2000)
 
-	saveFile, err := os.OpenFile("logs/shops.txt", os.O_RDWR|os.O_CREATE, 0666)
+	saveFile, err := os.OpenFile("logs/possible_shops.txt", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatal("error opening save file: %v", err)
 	}
