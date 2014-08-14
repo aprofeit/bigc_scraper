@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 
 	"os"
 )
@@ -10,15 +11,13 @@ type ShopChecker struct {
 	Concurrency int
 	ShopIDs     chan string
 	SaveFile    *os.File
-	MemSave     []string
 }
 
-func NewShopChecker(concurrency int, shopIDs chan string, saveFile *os.File, memSave []string) *ShopChecker {
+func NewShopChecker(concurrency int, shopIDs chan string, saveFile *os.File) *ShopChecker {
 	return &ShopChecker{
 		Concurrency: concurrency,
 		ShopIDs:     shopIDs,
 		SaveFile:    saveFile,
-		MemSave:     memSave,
 	}
 }
 
@@ -33,7 +32,7 @@ func (c *ShopChecker) Work() {
 }
 
 func (c *ShopChecker) CheckShopURL(shopID string) {
-	c.MemSave = append(c.MemSave, shopID)
+	c.SaveFile.WriteString(fmt.Sprintf("%s\n", shopID))
 }
 
 func (c *ShopChecker) LastShopID() []byte {
