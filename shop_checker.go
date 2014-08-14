@@ -3,7 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-
+	"log"
+	"net/http"
 	"os"
 )
 
@@ -32,7 +33,20 @@ func (c *ShopChecker) Work() {
 }
 
 func (c *ShopChecker) CheckShopURL(shopID string) {
-	c.SaveFile.WriteString(fmt.Sprintf("%s\n", shopID))
+	url := fmt.Sprintf("http://store-%s.mybigcommerce.com", shopID)
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		log.Printf("found shop %s\n", shopID)
+		_, err := c.SaveFile.WriteString(fmt.Sprintf("%s\n", shopID))
+		if err != nil {
+			log.Fatalf("saving shop shopID %s: %v", shopID, err)
+		}
+	}
 }
 
 func (c *ShopChecker) LastShopID() []byte {
