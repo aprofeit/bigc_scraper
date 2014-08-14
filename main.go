@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"os"
 )
@@ -28,11 +29,19 @@ func buildShopIDAtIndex(shopID []byte, index int, shopIDs chan string) {
 func main() {
 	shopIDs := make(chan string, 2000)
 
-	saveFile, err := os.Create("logs/shops.txt")
+	saveFile, err := os.Open("logs/shops.txt")
 	if err != nil {
 		log.Fatal("creating file: %v", err)
 	}
 	defer saveFile.Close()
+
+	scanner := bufio.NewScanner(saveFile)
+	var lastShopID string
+	for scanner.Scan() {
+		lastShopID = scanner.Text()
+	}
+	log.Printf("starting at shop id %s", lastShopID)
+	log.Printf("is %v", []byte(lastShopID))
 
 	shopChecker := NewShopChecker(1000, shopIDs, saveFile)
 	shopChecker.Work()
