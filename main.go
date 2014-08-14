@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"log"
 	"os"
 )
@@ -12,41 +11,36 @@ func setShopIDAtIndexToChar(shopID []byte, index int, char byte, shopIDs chan st
 	if index < len(shopID)-1 {
 		buildShopIDAtIndex(shopID, index+1, shopIDs)
 	} else {
+		log.Print(string(shopID))
 		shopIDs <- string(shopID)
 	}
 }
 
 func buildShopIDAtIndex(shopID []byte, index int, shopIDs chan string) {
-	for i := 48; i <= 57; i++ {
-		setShopIDAtIndexToChar(shopID, index, byte(i), shopIDs)
+	for char := 48; char <= 57; char++ {
+		setShopIDAtIndexToChar(shopID, index, byte(char), shopIDs)
 	}
 
-	for i := 97; i <= 122; i++ {
-		setShopIDAtIndexToChar(shopID, index, byte(i), shopIDs)
+	for char := 97; char <= 122; char++ {
+		setShopIDAtIndexToChar(shopID, index, byte(char), shopIDs)
 	}
 }
 
 func main() {
 	shopIDs := make(chan string, 2000)
 
-	saveFile, err := os.Open("logs/shops.txt")
+	saveFile, err := os.OpenFile("logs/shops.txt", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		log.Fatal("creating file: %v", err)
+		log.Fatal("error opening save file: %v", err)
 	}
 	defer saveFile.Close()
 
-	scanner := bufio.NewScanner(saveFile)
-	var lastShopID string
-	for scanner.Scan() {
-		lastShopID = scanner.Text()
-	}
-	log.Printf("starting at shop id %s", lastShopID)
-	log.Printf("is %v", []byte(lastShopID))
-
 	shopChecker := NewShopChecker(1000, shopIDs, saveFile)
 	shopChecker.Work()
+	lastShopID := shopChecker.LastShopID()
+	lastShopID[len(lastShopID)-1]++
 
-	for shopLength := 5; shopLength <= 7; shopLength++ {
+	for shopLength := len(lastShopID); shopLength <= 7; shopLength++ {
 		shopID := make([]byte, shopLength)
 
 		buildShopIDAtIndex(shopID, 0, shopIDs)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,5 +46,19 @@ func (c *ShopChecker) CheckShopURL(shopID string) {
 		if err != nil {
 			log.Fatalf("saving shop shopID %s: %v", shopID, err)
 		}
+	}
+}
+
+func (c *ShopChecker) LastShopID() []byte {
+	scanner := bufio.NewScanner(c.SaveFile)
+	var lastShopID string
+	for scanner.Scan() {
+		lastShopID = scanner.Text()
+	}
+
+	if len(lastShopID) == 0 {
+		return []byte{48, 48, 48, 48, 47}
+	} else {
+		return []byte(lastShopID)
 	}
 }
