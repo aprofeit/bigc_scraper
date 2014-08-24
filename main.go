@@ -11,7 +11,6 @@ func setShopIDAtIndexToChar(shopID []byte, index int, char byte, shopIDs chan st
 	if index < len(shopID)-1 {
 		buildShopIDAtIndex(shopID, index+1, shopIDs)
 	} else {
-		log.Print(string(shopID))
 		shopIDs <- string(shopID)
 	}
 }
